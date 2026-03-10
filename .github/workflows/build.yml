@@ -1371,6 +1371,31 @@ jobs:
         run: |
           ctest -R ^test-vad$ --test-dir build --output-on-failure -VV
 
+  transcription:
+    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' ||
+            github.event.inputs.run_type == 'full-ci' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download model
+        shell: bash
+        run: |
+          ./models/download-ggml-model.sh base.en
+
+      - name: Build
+        shell: bash
+        run: |
+          cmake -B build
+          cmake --build build --config Release
+
+      - name: Test
+        shell: bash
+        run: |
+          ctest -L transcription --test-dir build --output-on-failure -VV
+
 # TODO: simplify the following workflows using a matrix
   ggml-ci-x64-cpu-low-perf:
     runs-on: ubuntu-22.04
