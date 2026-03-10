@@ -80,7 +80,6 @@ set_tests_properties(${TEST_TARGET} PROPERTIES LABELS "large")
 
 if (WHISPER_FFMPEG)
     set(TEST_TARGET test-whisper-cli-tiny-mp3)
-    # Check with reviewers: any way to check the output transcription via ctest (diff, ...)?
     add_test(NAME ${TEST_TARGET}
       COMMAND $<TARGET_FILE:whisper-cli>
       -m ${PROJECT_SOURCE_DIR}/models/for-tests-ggml-tiny.en.bin
@@ -109,4 +108,15 @@ target_compile_definitions(${VAD_TEST} PRIVATE
     VAD_MODEL_PATH="${PROJECT_SOURCE_DIR}/models/for-tests-silero-v6.2.0-ggml.bin"
     SAMPLE_PATH="${PROJECT_SOURCE_DIR}/samples/jfk.wav")
 add_test(NAME ${VAD_TEST} COMMAND ${VAD_TEST})
-set_tests_properties(${VAD_TEST} PROPERTIES LABELS "base;en")
+set_tests_properties(${VAD_TEST} PROPERTIES LABELS "base;en;transcription")
+
+# Core transcription test verifies whisper_full produces correct output without VAD
+set(TRANSCRIPTION_TEST test-whisper)
+add_executable(${TRANSCRIPTION_TEST} ${TRANSCRIPTION_TEST}.cpp)
+target_include_directories(${TRANSCRIPTION_TEST} PRIVATE ../include ../ggml/include ../examples)
+target_link_libraries(${TRANSCRIPTION_TEST} PRIVATE common)
+target_compile_definitions(${TRANSCRIPTION_TEST} PRIVATE
+    WHISPER_MODEL_PATH="${PROJECT_SOURCE_DIR}/models/ggml-base.en.bin"
+    SAMPLE_PATH="${PROJECT_SOURCE_DIR}/samples/jfk.wav")
+add_test(NAME ${TRANSCRIPTION_TEST} COMMAND ${TRANSCRIPTION_TEST})
+set_tests_properties(${TRANSCRIPTION_TEST} PROPERTIES LABELS "base;en;transcription")
